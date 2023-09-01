@@ -22,7 +22,7 @@ bin
 # terraformlocal tfstate and vars files
 *.tfplan
 *.tfvars
-
+secret.tfvars
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -73,7 +73,8 @@ test_solution*.json
 *__debug_bin
 
 # makefile
-makefile
+/makefile
+/Makefile
 
 # Inore licencing and codeowners
 CODEOWNERS
