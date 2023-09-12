@@ -1,12 +1,12 @@
 variable "tenant_id" {
   description = "The AAD tenant id of service principal or user"
   type        = string
-  default     = "fb390a9f-b556-4773-bb8b-8087b18b16b2"
+  default     = "***"
 }
 
 variable "client_id" {
   description = "The client ID of the of the service principal"
-  default     = "a4df11c8-c696-47e4-97cd-6fa95810660b"
+  default     = "***"
   type        = string
 
 }
@@ -19,7 +19,7 @@ variable "client_secret" {
 
 variable "subscription_id" {
   description = "The Azure subscription for ASLG2 deployment"
-  default     = "891329ff-74ec-491c-8ccf-eb052af54740"
+  default     = "***"
   sensitive   = true
   type        = string
 }
