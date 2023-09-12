@@ -14,7 +14,7 @@ variable "client_secret" {
   description = "The client secret of the service principal"
   sensitive   = true
   type        = string
-  default     = "..."
+  default     = "***"
 }
 
 variable "subscription_id" {
