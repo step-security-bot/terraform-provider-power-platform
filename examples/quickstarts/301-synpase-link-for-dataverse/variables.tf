@@ -6,7 +6,7 @@ variable "tenant_id" {
 
 variable "client_id" {
   description = "The client ID of the of the service principal"
-  default     = "***"
+  default     = ""
   type        = string
 
 }
@@ -14,12 +14,12 @@ variable "client_secret" {
   description = "The client secret of the service principal"
   sensitive   = true
   type        = string
-  default     = "***"
+  default     = ""
 }
 
 variable "subscription_id" {
   description = "The Azure subscription for ASLG2 deployment"
-  default     = "***"
+  default     = ""
   sensitive   = true
   type        = string
 }
