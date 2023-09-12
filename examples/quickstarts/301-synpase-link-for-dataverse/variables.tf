@@ -12,9 +12,9 @@ variable "client_id" {
 }
 variable "client_secret" {
   description = "The client secret of the service principal"
-  sensitive   = true
-  type        = string
-  default     = ""
+  # sensitive   = true
+  type    = string
+  default = ""
 }
 
 variable "subscription_id" {
