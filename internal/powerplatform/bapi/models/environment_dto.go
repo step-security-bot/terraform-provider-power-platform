@@ -27,7 +27,7 @@ var (
 		1063, 1044, 1045, 1046, 2070, 1048, 1049, 2074, 1051, 1060, 3082, 1053, 1054,
 		1055, 1058, 1066, 3098, 1086, 1057}
 
-	EnvironmentTypes = []string{"Sandbox", "Production", "Trial", "Developer"}
+	EnvironmentTypes = []string{"Sandbox", "SubscriptionBasedTrial", "Production", "Trial", "Developer"}
 )
 
 type EnvironmentDto struct {
