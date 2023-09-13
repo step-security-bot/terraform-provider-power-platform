@@ -39,6 +39,17 @@ func (client *ApiClient) GetEnvironments(ctx context.Context) ([]models.Environm
 		return nil, err
 	}
 
+	curr := models.EnvironmentCreateCurrency{
+		Code: "USD",
+	}
+
+	for inx, _ := range envArray.Value {
+		if err != nil {
+			return nil, err
+		}
+		envArray.Value[inx].Properties.LinkedEnvironmentMetadata.Currency = curr
+	}
+
 	return envArray.Value, nil
 }
 

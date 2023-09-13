@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	powerplatform_bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi"
@@ -47,6 +49,7 @@ type EnvironmentDataSourceModel struct {
 	SecurityGroupId types.String `tfsdk:"security_group_id"`
 	LanguageName    types.Int64  `tfsdk:"language_code"`
 	Version         types.String `tfsdk:"version"`
+	CurrencyCode    types.String `tfsdk:"currency_code"`
 }
 
 func ConvertFromEnvironmentDto(environmentDto models.EnvironmentDto) EnvironmentDataSourceModel {
@@ -61,6 +64,7 @@ func ConvertFromEnvironmentDto(environmentDto models.EnvironmentDto) Environment
 		Url:             types.StringValue(environmentDto.Properties.LinkedEnvironmentMetadata.InstanceURL),
 		Domain:          types.StringValue(environmentDto.Properties.LinkedEnvironmentMetadata.DomainName),
 		Version:         types.StringValue(environmentDto.Properties.LinkedEnvironmentMetadata.Version),
+		CurrencyCode:    types.StringValue(environmentDto.Properties.LinkedEnvironmentMetadata.Currency.Code),
 	}
 }
 
@@ -132,6 +136,14 @@ func (d *EnvironmentsDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 							Description:         "Version of the environment",
 							MarkdownDescription: "Version of the environment",
 							Computed:            true,
+						},
+						"currency_code": schema.StringAttribute{
+							Description:         "Unique currency code",
+							MarkdownDescription: "Unique currency name",
+							Computed:            true,
+							Validators: []validator.String{
+								stringvalidator.OneOf(models.EnvironmentCurrencyCodes...),
+							},
 						},
 						//Not available in BAPI as for now
 						// "currency_name": &schema.StringAttribute{

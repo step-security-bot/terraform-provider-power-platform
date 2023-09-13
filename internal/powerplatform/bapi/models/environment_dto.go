@@ -54,6 +54,7 @@ type LinkedEnvironmentMetadataDto struct {
 	SecurityGroupId string `json:"securityGroupId"`
 	ResourceId      string `json:"resourceId"`
 	Version         string `json:"version"`
+	Currency        EnvironmentCreateCurrency
 }
 
 type StatesEnvironmentDto struct {
