@@ -83,6 +83,11 @@ func (client *ApiClient) GetEnvironment(ctx context.Context, environmentId strin
 		env.Properties.LinkedEnvironmentMetadata.SecurityGroupId = "00000000-0000-0000-0000-000000000000"
 	}
 
+	curr := models.EnvironmentCreateCurrency{
+		Code: "USD",
+	}
+	env.Properties.LinkedEnvironmentMetadata.Currency = curr
+
 	return &env, nil
 }
 
