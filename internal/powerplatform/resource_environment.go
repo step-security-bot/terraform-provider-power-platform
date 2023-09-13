@@ -264,6 +264,7 @@ func (r *EnvironmentResource) Read(ctx context.Context, req resource.ReadRequest
 	state.Version = env.Version
 	state.LanguageName = env.LanguageName
 	state.Location = env.Location
+	state.CurrencyName = env.CurrencyCode
 
 	//TODO move to separate function
 	ctx = tflog.SetField(ctx, "environment_name", state.EnvironmentName.ValueString())
@@ -277,6 +278,7 @@ func (r *EnvironmentResource) Read(ctx context.Context, req resource.ReadRequest
 	ctx = tflog.SetField(ctx, "language_code", state.LanguageName.ValueInt64())
 	ctx = tflog.SetField(ctx, "currency_name", state.CurrencyName.ValueString())
 	ctx = tflog.SetField(ctx, "version", state.Version.ValueString())
+	ctx = tflog.SetField(ctx, "currency_code", state.CurrencyName.ValueString())
 	tflog.Debug(ctx, fmt.Sprintf("READ: %s_environment with environment_name %s", r.ProviderTypeName, state.EnvironmentName.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -336,6 +338,7 @@ func (r *EnvironmentResource) Update(ctx context.Context, req resource.UpdateReq
 		plan.Version = env.Version
 		plan.LanguageName = env.LanguageName
 		plan.Location = env.Location
+		plan.CurrencyName = env.CurrencyCode
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
