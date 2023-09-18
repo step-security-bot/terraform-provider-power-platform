@@ -288,6 +288,21 @@ func (mr *MockApiClientInterfaceMockRecorder) GetSolutions(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSolutions", reflect.TypeOf((*MockApiClientInterface)(nil).GetSolutions), arg0, arg1)
 }
 
+// GetTenantSettings mocks base method.
+func (m *MockApiClientInterface) GetTenantSettings(arg0 context.Context) (*powerplatform_bapi0.TenantSettingsDto, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTenantSettings", arg0)
+	ret0, _ := ret[0].(*powerplatform_bapi0.TenantSettingsDto)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTenantSettings indicates an expected call of GetTenantSettings.
+func (mr *MockApiClientInterfaceMockRecorder) GetTenantSettings(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTenantSettings", reflect.TypeOf((*MockApiClientInterface)(nil).GetTenantSettings), arg0)
+}
+
 // UpdateEnvironment mocks base method.
 func (m *MockApiClientInterface) UpdateEnvironment(arg0 context.Context, arg1 string, arg2 powerplatform_bapi0.EnvironmentDto) (*powerplatform_bapi0.EnvironmentDto, error) {
 	m.ctrl.T.Helper()

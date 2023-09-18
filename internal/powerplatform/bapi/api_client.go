@@ -58,6 +58,8 @@ type ApiClientInterface interface {
 	DeletePolicy(ctx context.Context, name string) error
 	UpdatePolicy(ctx context.Context, name string, policyToUpdate models.DlpPolicyModel) (*models.DlpPolicyModel, error)
 	CreatePolicy(ctx context.Context, policyToCreate models.DlpPolicyModel) (*models.DlpPolicyModel, error)
+
+	GetTenantSettings(ctx context.Context) (*models.TenantSettingsDto, error)
 }
 
 func (client *ApiClient) doRequest(request *http.Request) ([]byte, error) {
