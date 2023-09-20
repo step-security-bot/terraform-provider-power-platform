@@ -14,6 +14,7 @@
 
 .DS_Store
 bin
+__debug*
 
 # Local .terraform directories
 **/.terraform/*

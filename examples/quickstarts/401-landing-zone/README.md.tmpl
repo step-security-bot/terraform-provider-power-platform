@@ -1,0 +1,56 @@
+# Landing Zones (401 level)
+
+This Terraform module aims to provide an example implementation of [Power Platform Landing Zones](https://aka.ms/NorthStarPowerPlatform). It is intended to be used as a starting point for further customization.
+
+## Prerequisites
+
+- Azure subscription
+- Power Platform environment
+- Service Principal or User Account with appropriate permissions
+
+{{ .ModuleDetails }}
+
+## Usage
+
+Include this module in your Terraform scripts as follows:
+
+```hcl
+
+module "power_platform_landing_zone" {
+  source            = "./modules/{{ .ModuleName }}"
+  tenant_id         = "00000000-0000-0000-0000-000000000000"
+  client_id         = "00000000-0000-0000-0000-000000000000"
+  client_secret     = "************************************"
+}
+
+```
+
+## Detailed Behavior
+
+### Power Platform
+
+This module creates Dev, Test, and Prod environments in Power Platform for Admins and Industry teams.  It also creates a Power Platform DLP policies for each environment.
+
+### Azure
+
+The SQL database is provisioned with geo-redundant backups and is accessible only from within the Virtual Network.
+
+### Entra (Azure AD)
+
+This module creates the necessary Azure AD groups used to manage access to the Power Platform environments.
+
+### Azure DevOps
+
+
+
+## Limitations and Considerations
+
+- Due to Power Platform limitations, certain resources may not fully support Terraform's state management.
+- Make sure to set appropriate RBAC for Azure and Power Platform resources.
+- This module is provided as a sample only and is not intended for production use without further customization.
+
+## Additional Resources
+
+- [Power Platform Admin Documentation](https://learn.microsoft.com/en-us/power-platform/admin/)
+- [Reference Architecture for Power Platform](https://aka.ms/NorthStarPowerPlatform)
+- [Landing Zones Announcement](https://cloudblogs.microsoft.com/powerplatform/2022/02/18/north-star-architecture-and-landing-zones-for-power-platform/)

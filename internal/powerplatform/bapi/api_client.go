@@ -60,6 +60,7 @@ type ApiClientInterface interface {
 	CreatePolicy(ctx context.Context, policyToCreate models.DlpPolicyModel) (*models.DlpPolicyModel, error)
 
 	GetTenantSettings(ctx context.Context) (*models.TenantSettingsDto, error)
+	UpdateTenantSettings(ctx context.Context, tenantSettings *models.TenantSettingsDto) (*models.TenantSettingsDto, error)
 }
 
 func (client *ApiClient) doRequest(request *http.Request) ([]byte, error) {

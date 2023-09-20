@@ -130,6 +130,7 @@ type CatalogSettingsSettings struct {
 	PowerCatalogAudienceSetting types.String `tfsdk:"power_catalog_audience_setting"`
 }
 
+// ConvertFromTenantSettingsDto converts a TenantSettingsDto to a TenantSettingsDataSourceModel
 func ConvertFromTenantSettingsDto(tenantSettingsDto models.TenantSettingsDto) TenantSettingsDataSourceModel {
 	return TenantSettingsDataSourceModel{
 		Id:                         types.StringValue(""),
@@ -152,12 +153,14 @@ func ConvertFromTenantSettingsDto(tenantSettingsDto models.TenantSettingsDto) Te
 				ShareWithColleaguesUserLimit: types.Int64Value(tenantSettingsDto.PowerPlatform.TeamsIntegration.ShareWithColleaguesUserLimit),
 			},
 			PowerApps: PowerAppsSettings{
-				DisableShareWithEveryone:       types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableShareWithEveryone),
-				EnableGuestsToMake:             types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.EnableGuestsToMake),
-				DisableMembersIndicator:        types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableMembersIndicator),
-				DisableMakerMatch:              types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableMakerMatch),
-				DisableUnusedLicenseAssignment: types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableUnusedLicenseAssignment),
-				DisableCreateFromImage:         types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableCreateFromImage),
+				DisableShareWithEveryone:             types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableShareWithEveryone),
+				EnableGuestsToMake:                   types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.EnableGuestsToMake),
+				DisableMembersIndicator:              types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableMembersIndicator),
+				DisableMakerMatch:                    types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableMakerMatch),
+				DisableUnusedLicenseAssignment:       types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableUnusedLicenseAssignment),
+				DisableCreateFromImage:               types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableCreateFromImage),
+				DisableCreateFromFigma:               types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableCreateFromFigma),
+				DisableConnectionSharingWithEveryone: types.BoolValue(tenantSettingsDto.PowerPlatform.PowerApps.DisableConnectionSharingWithEveryone),
 			},
 			PowerAutomate: PowerAutomateSettings{
 				DisableCopilot: types.BoolValue(tenantSettingsDto.PowerPlatform.PowerAutomate.DisableCopilot),
@@ -200,6 +203,8 @@ func ConvertFromTenantSettingsDto(tenantSettingsDto models.TenantSettingsDto) Te
 	}
 }
 
+// Configure of a data source is invoked during terraform init and refresh operations. It is used to configure the data source
+// with the provider's API client. The API client is stored in the datasource's state and used during Read operations.
 func (d *TenantSettingsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -222,6 +227,8 @@ func (d *TenantSettingsDataSource) Configure(ctx context.Context, req datasource
 
 }
 
+// Read reads the state of the resource from the underlying system. It is invoked during a terraform refresh operation. The
+// state should be read from Power Platform APIs and stored in the State object. 
 func (d *TenantSettingsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state TenantSettingsDataSourceModel
 
@@ -247,6 +254,7 @@ func (d *TenantSettingsDataSource) Read(ctx context.Context, req datasource.Read
 	}
 }
 
+// Schema returns the schema for the resource. This is used to validate and normalize input data.
 func (d *TenantSettingsDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Power Platform Tenant Settings Data Source",
@@ -499,75 +507,7 @@ func (d *TenantSettingsDataSource) Schema(_ context.Context, _ datasource.Schema
 	}
 }
 
+// Metadata returns the metadata for the resource, which includes the resource type name
 func (d *TenantSettingsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + d.TypeName
 }
-
-// {
-// 	"walkMeOptOut": false,
-// 	"disableNPSCommentsReachout": false,
-// 	"disableNewsletterSendout": false,
-// 	"disableEnvironmentCreationByNonAdminUsers": false,
-// 	"disablePortalsCreationByNonAdminUsers": false,
-// 	"disableSurveyFeedback": false,
-// 	"disableTrialEnvironmentCreationByNonAdminUsers": false,
-// 	"disableCapacityAllocationByEnvironmentAdmins": false,
-// 	"disableSupportTicketsVisibleByAllUsers": false,
-// 	"powerPlatform": {
-// 		"search": {
-// 			"disableDocsSearch": true,
-// 			"disableCommunitySearch": false,
-// 			"disableBingVideoSearch": false
-// 		},
-// 		"teamsIntegration": {
-// 			"shareWithColleaguesUserLimit": 10000
-// 		},
-// 		"powerApps": {
-// 			"disableShareWithEveryone": false,
-// 			"enableGuestsToMake": false,
-// 			"disableMembersIndicator": false,
-// 			"disableMakerMatch": false,
-// 			"disableUnusedLicenseAssignment": false,
-// 			"disableCreateFromImage": false,
-// 			"disableCreateFromFigma": false,
-// 			"disableConnectionSharingWithEveryone": false
-// 		},
-// 		"powerAutomate": {
-// 			"disableCopilot": false
-// 		},
-// 		"environments": {
-// 			"disablePreferredDataLocationForTeamsEnvironment": false
-// 		},
-// 		"governance": {
-// 			"disableAdminDigest": false,
-// 			"disableDeveloperEnvironmentCreationByNonAdminUsers": false,
-// 			"enableDefaultEnvironmentRouting": false,
-// 			"policy": {
-// 				"enableDesktopFlowDataPolicyManagement": false
-// 			}
-// 		},
-// 		"licensing": {
-// 			"disableBillingPolicyCreationByNonAdminUsers": false,
-// 			"enableTenantCapacityReportForEnvironmentAdmins": false,
-// 			"storageCapacityConsumptionWarningThreshold": 85,
-// 			"enableTenantLicensingReportForEnvironmentAdmins": false,
-// 			"disableUseOfUnassignedAIBuilderCredits": false
-// 		},
-// 		"powerPages": {},
-// 		"champions": {
-// 			"disableChampionsInvitationReachout": false,
-// 			"disableSkillsMatchInvitationReachout": false
-// 		},
-// 		"intelligence": {
-// 			"disableCopilot": false,
-// 			"enableOpenAiBotPublishing": true
-// 		},
-// 		"modelExperimentation": {
-// 			"enableModelDataSharing": false,
-// 			"disableDataLogging": false
-// 		},
-// 		"catalogSettings": {
-// 			"powerCatalogAudienceSetting": "All"
-// 		}
-// 	}
-// }
