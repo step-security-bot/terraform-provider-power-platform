@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:internal/powerplatform/services/environment/environment_dto.go
 package environment
+========
+package powerplatform_models
+>>>>>>>> main:internal/powerplatform/models/environment_dto.go
 
 var (
 	//https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/locations/unitedstates/environmentCurrencies?api-version=2023-06-01

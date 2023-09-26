@@ -29,21 +29,9 @@ provider "powerplatform" {
 	password = "_"
 }
 `
-
-	ProviderConfigX = `
-provider "powerplatform" {
-}
-`
-	UnitTestsProviderConfig = `
-provider "powerplatform" {
-	tenant_id = "_"
-	username = "_"
-	password = "_"
-}
-`
 )
 
-func powerPlatformProviderServerApiMock(bapiClient bapi.BapiClientInterface, dvClient dvapi.DataverseClientInterface, ppClient ppapi.PowerPlatformClientInterface) func() (tfprotov6.ProviderServer, error) {
+func powerPlatformProviderServerApiMock(bapiClient bapi.BapiClientInterface, dvClient dvapi.DataverseClientInterface, ppClient ppapi.PowerPlatformClientApiInterface) func() (tfprotov6.ProviderServer, error) {
 	providerMock := providerserver.NewProtocol6WithError(&PowerPlatformProvider{
 		Config: &common.ProviderConfig{
 			Credentials: &common.ProviderCredentials{},

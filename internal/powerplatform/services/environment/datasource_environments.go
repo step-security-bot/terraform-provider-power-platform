@@ -1,4 +1,4 @@
-package environment
+package powerplatform
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoft/terraform-provider-power-platform/internal/powerplatform"
 	bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api/bapi"
 	models "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/models"
 )
@@ -18,11 +17,6 @@ var (
 	_ datasource.DataSource              = &EnvironmentsDataSource{}
 	_ datasource.DataSourceWithConfigure = &EnvironmentsDataSource{}
 )
-
-func init() {
-	tflog.Debug(nil, "Registering data source: powerplatform_environments")
-	powerplatform.RegisterDataSource(func() datasource.DataSource { return NewEnvironmentsDataSource() })
-}
 
 func NewEnvironmentsDataSource() datasource.DataSource {
 	return &EnvironmentsDataSource{
