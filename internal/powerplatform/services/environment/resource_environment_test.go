@@ -1,11 +1,13 @@
 package environment
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
+	"github.com/microsoft/terraform-provider-power-platform/internal/powerplatform"
 )
 
 func TestUnitHttpClient(t *testing.T) {
@@ -13,10 +15,14 @@ func TestUnitHttpClient(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	environment_resp := httpmock.NewStringResponder(http.StatusAccepted, httpmock.File("testdata/create_environment_response.json")).HeaderSet("Content-Type", "application/json")
+	httpmock.RegisterResponder("POST", "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments", environment_resp)
+
+
 	resource.Test(t, resource.TestCase{
 		IsUnitTest: true,
 		ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error){
-			"powerplatform": powerPlatformProviderServerApiMock(clientMock),
+			"powerplatform": nil // func() { return providerserver.NewProtocol6WithError(powerplatform.NewPowerPlatformProvider()).(tfprotov6.ProviderServer), nil },
 		},
 		Steps: []resource.TestStep{},
 	})
