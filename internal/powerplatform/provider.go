@@ -298,12 +298,12 @@ func (p *PowerPlatformProvider) Resources(ctx context.Context) []func() resource
 }
 
 func (p *PowerPlatformProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
+	return append(dataSources, []func() datasource.DataSource{
 		func() datasource.DataSource { return NewConnectorsDataSource() },
 		func() datasource.DataSource { return NewPowerAppsDataSource() },
-		func() datasource.DataSource { return NewEnvironmentsDataSource() },
+		//func() datasource.DataSource { return NewEnvironmentsDataSource() },
 		func() datasource.DataSource { return NewSolutionsDataSource() },
-	}
+	}...)
 }
 
 var dataSources []func() datasource.DataSource

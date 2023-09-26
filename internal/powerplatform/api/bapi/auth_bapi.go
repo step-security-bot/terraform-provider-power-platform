@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:internal/powerplatform/clients/auth_bapi.go
-package clients
-========
 package powerplatform_api_bapi
->>>>>>>> mawasile/77-bapi-authentication-token-needs-to-be-refreshed-at-least-hourly:internal/powerplatform/api/bapi/auth_bapi.go
 
 import (
 	"context"
