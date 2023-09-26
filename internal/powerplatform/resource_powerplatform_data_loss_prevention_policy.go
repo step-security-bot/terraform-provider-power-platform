@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	powerplatform_bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi"
-	models "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi/models"
+	bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api/bapi"
+	models "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/models"
 )
 
 var _ resource.Resource = &DataLossPreventionPolicyResource{}
@@ -32,7 +32,7 @@ func NewDataLossPreventionPolicyResource() resource.Resource {
 }
 
 type DataLossPreventionPolicyResource struct {
-	BapiApiClient    powerplatform_bapi.ApiClientInterface
+	BapiApiClient    bapi.BapiClientInterface
 	ProviderTypeName string
 	TypeName         string
 }
@@ -320,7 +320,7 @@ func (r *DataLossPreventionPolicyResource) Configure(ctx context.Context, req re
 		return
 	}
 
-	client, ok := req.ProviderData.(*PowerPlatformProvider).old_bapiClient.(powerplatform_bapi.ApiClientInterface)
+	client, ok := req.ProviderData.(*PowerPlatformProvider).BapiApi.Client.(bapi.BapiClientInterface)
 
 	if !ok {
 		resp.Diagnostics.AddError(

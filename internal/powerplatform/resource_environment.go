@@ -15,8 +15,8 @@ package powerplatform
 // 	"github.com/hashicorp/terraform-plugin-framework/types"
 // 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-// 	powerplatform_bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi"
-// 	models "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi/models"
+// 	bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api/bapi"
+// 	models "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/models"
 // 	powerplatform_modifiers "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/modifiers"
 // )
 
@@ -31,7 +31,7 @@ package powerplatform
 // }
 
 // type EnvironmentResource struct {
-// 	BapiApiClient    powerplatform_bapi.ApiClientInterface
+// 	BapiApiClient    bapi.BapiClientInterface
 // 	ProviderTypeName string
 // 	TypeName         string
 // }
@@ -164,7 +164,7 @@ package powerplatform
 // 		return
 // 	}
 
-// 	client, ok := req.ProviderData.(*PowerPlatformProvider).old_bapiClient.(powerplatform_bapi.ApiClientInterface)
+	// client, ok := req.ProviderData.(*PowerPlatformProvider).BapiApi.Client.(bapi.BapiClientInterface)
 
 // 	if !ok {
 // 		resp.Diagnostics.AddError(
@@ -354,11 +354,11 @@ package powerplatform
 // 		return
 // 	}
 
-// 	err := r.BapiApiClient.DeleteEnvironment(ctx, state.EnvironmentName.ValueString())
-// 	if err != nil {
-// 		resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s", r.ProviderTypeName), err.Error())
-// 		return
-// 	}
+	// err := r.BapiApiClient.DeleteEnvironment(ctx, state.EnvironmentName.ValueString())
+	// if err != nil {
+	// 	resp.Diagnostics.AddError(fmt.Sprintf("Client error when deleting %s_%s", r.ProviderTypeName, r.TypeName), err.Error())
+	// 	return
+	// }
 
 // 	tflog.Debug(ctx, fmt.Sprintf("DELETE RESOURCE END: %s", r.ProviderTypeName))
 // }

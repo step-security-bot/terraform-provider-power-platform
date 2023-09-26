@@ -1,42 +1,96 @@
-package powerplatform_bapi
+package powerplatform
 
 import (
 	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	models "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi/models"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	api "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api"
+	bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api/bapi"
+	models "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/models"
 )
 
-func (client *ApiClient) GetSolution(ctx context.Context, environmentId string, solutionName string) (*models.SolutionDto, error) {
-	solutions, err := client.GetSolutions(ctx, environmentId)
+var _ DataverseClientInterface = &DataverseClientImplementation{}
+
+type DataverseClientInterface interface {
+	Initialize(ctx context.Context, environmentUrl string) (string, error)
+
+	GetSolutions(ctx context.Context, environmentId string) ([]models.SolutionDto, error)
+	CreateSolution(ctx context.Context, environmentId string, solutionToCreate models.ImportSolutionDto, content []byte, settings []byte) (*models.SolutionDto, error)
+	GetSolution(ctx context.Context, environmentId string, solutionName string) (*models.SolutionDto, error)
+	DeleteSolution(ctx context.Context, environmentId string, solutionName string) error
+}
+
+type DataverseClientImplementation struct {
+	BaseApi    api.ApiClientInterface
+	Auth       DataverseAuthInterface
+	BapiClient bapi.BapiClientInterface
+}
+
+func (client *DataverseClientImplementation) doRequest(ctx context.Context, environmentUrl string, request *http.Request) (*api.ApiHttpResponse, error) {
+	token, err := client.Initialize(ctx, environmentUrl)
 	if err != nil {
 		return nil, err
 	}
-
-	for _, solution := range solutions {
-		if strings.EqualFold(solution.Name, solutionName) {
-			return &solution, nil
-		}
-	}
-	return nil, fmt.Errorf("solution %s not found in %s", solutionName, environmentId)
+	return client.BaseApi.DoRequest(token, request)
 }
 
-func (client *ApiClient) GetSolutions(ctx context.Context, environmentId string) ([]models.SolutionDto, error) {
-	environmentUrl, token, err := client.getEnvironmentAuthDetails(ctx, environmentId)
+func (client *DataverseClientImplementation) getEnvironmentUrlById(ctx context.Context, environmentId string) (string, error) {
+	env, err := client.BapiClient.GetEnvironment(ctx, environmentId)
+	if err != nil {
+		return "", err
+	}
+	environmentUrl := strings.TrimSuffix(env.Properties.LinkedEnvironmentMetadata.InstanceURL, "/")
+	return environmentUrl, nil
+}
+
+func (client *DataverseClientImplementation) Initialize(ctx context.Context, environmentUrl string) (string, error) {
+
+	token, err := client.Auth.GetToken(environmentUrl)
+
+	if _, ok := err.(*api.TokeExpiredError); ok {
+		tflog.Debug(ctx, "Token expired. authenticating...")
+
+		if client.BaseApi.GetConfig().Credentials.IsClientSecretCredentialsProvided() {
+			token, err := client.Auth.AuthenticateClientSecret(ctx, environmentUrl, client.BaseApi.GetConfig().Credentials.TenantId, client.BaseApi.GetConfig().Credentials.ClientId, client.BaseApi.GetConfig().Credentials.Secret)
+			if err != nil {
+				return "", err
+			}
+			return token, nil
+		} else if client.BaseApi.GetConfig().Credentials.IsUserPassCredentialsProvided() {
+			token, err := client.Auth.AuthenticateUserPass(ctx, environmentUrl, client.BaseApi.GetConfig().Credentials.TenantId, client.BaseApi.GetConfig().Credentials.Username, client.BaseApi.GetConfig().Credentials.Password)
+			if err != nil {
+				return "", err
+			}
+			return token, nil
+		} else {
+			return "", errors.New("no credentials provided")
+		}
+
+	} else if err != nil {
+		return "", err
+	} else {
+		return token, nil
+	}
+}
+
+func (client *DataverseClientImplementation) GetSolutions(ctx context.Context, environmentId string) ([]models.SolutionDto, error) {
+	environmentUrl, err := client.getEnvironmentUrlById(ctx, environmentId)
 	if err != nil {
 		return nil, err
 	}
 
 	apiUrl := &url.URL{
 		Scheme: "https",
-		Host:   strings.TrimPrefix(*environmentUrl, "https://"),
+		Host:   strings.TrimPrefix(environmentUrl, "https://"),
 		Path:   "/api/data/v9.2/solutions",
 	}
 	values := url.Values{}
@@ -50,8 +104,7 @@ func (client *ApiClient) GetSolutions(ctx context.Context, environmentId string)
 		return nil, err
 	}
 
-	request.Header.Set("Authorization", "Bearer "+*token)
-	apiResponse, err := client.doRequest(request)
+	apiResponse, err := client.doRequest(ctx, environmentUrl, request)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +125,8 @@ func (client *ApiClient) GetSolutions(ctx context.Context, environmentId string)
 	return solutions, nil
 }
 
-func (client *ApiClient) CreateSolution(ctx context.Context, environmentId string, solutionToCreate models.ImportSolutionDto, content []byte, settings []byte) (*models.SolutionDto, error) {
-
-	environmentUrl, token, err := client.getEnvironmentAuthDetails(ctx, environmentId)
+func (client *DataverseClientImplementation) CreateSolution(ctx context.Context, environmentId string, solutionToCreate models.ImportSolutionDto, content []byte, settings []byte) (*models.SolutionDto, error) {
+	environmentUrl, err := client.getEnvironmentUrlById(ctx, environmentId)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +146,7 @@ func (client *ApiClient) CreateSolution(ctx context.Context, environmentId strin
 
 	apiUrl := &url.URL{
 		Scheme: "https",
-		Host:   strings.TrimPrefix(*environmentUrl, "https://"),
+		Host:   strings.TrimPrefix(environmentUrl, "https://"),
 		Path:   "/api/data/v9.2/StageSolution",
 	}
 
@@ -102,8 +154,7 @@ func (client *ApiClient) CreateSolution(ctx context.Context, environmentId strin
 	if err != nil {
 		return nil, err
 	}
-	stageSolutionRequest.Header.Set("Authorization", "Bearer "+*token)
-	apiResponse, err := client.doRequest(stageSolutionRequest)
+	apiResponse, err := client.doRequest(ctx, environmentUrl, stageSolutionRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -136,15 +187,14 @@ func (client *ApiClient) CreateSolution(ctx context.Context, environmentId strin
 
 	apiUrl = &url.URL{
 		Scheme: "https",
-		Host:   strings.TrimPrefix(*environmentUrl, "https://"),
+		Host:   strings.TrimPrefix(environmentUrl, "https://"),
 		Path:   "/api/data/v9.2/ImportSolutionAsync",
 	}
 	importSolutionRequest, err := http.NewRequestWithContext(ctx, "POST", apiUrl.String(), bytes.NewReader(importSolutionRequestBody))
 	if err != nil {
 		return nil, err
 	}
-	importSolutionRequest.Header.Set("Authorization", "Bearer "+*token)
-	apiResponse, err = client.doRequest(importSolutionRequest)
+	apiResponse, err = client.doRequest(ctx, environmentUrl, importSolutionRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -159,16 +209,15 @@ func (client *ApiClient) CreateSolution(ctx context.Context, environmentId strin
 
 	apiUrl = &url.URL{
 		Scheme: "https",
-		Host:   strings.TrimPrefix(*environmentUrl, "https://"),
+		Host:   strings.TrimPrefix(environmentUrl, "https://"),
 		Path:   fmt.Sprintf("/api/data/v9.2/asyncoperations(%s)", importSolutionResponse.AsyncOperationId),
 	}
 	asyncSolutionImportRequest, err := http.NewRequestWithContext(ctx, "GET", apiUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-	asyncSolutionImportRequest.Header.Set("Authorization", "Bearer "+*token)
 	for {
-		apiResponse, err := client.doRequest(asyncSolutionImportRequest)
+		apiResponse, err := client.doRequest(ctx, environmentUrl, asyncSolutionImportRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -178,7 +227,7 @@ func (client *ApiClient) CreateSolution(ctx context.Context, environmentId strin
 			return nil, err
 		}
 		if asyncSolutionPullResponse.CompletedOn != "" {
-			err = client.validateSolutionImportResult(ctx, *token, *environmentUrl, importSolutionResponse.ImportJobKey)
+			err = client.validateSolutionImportResult(ctx, environmentUrl, importSolutionResponse.ImportJobKey)
 			if err != nil {
 				return nil, err
 			}
@@ -192,38 +241,21 @@ func (client *ApiClient) CreateSolution(ctx context.Context, environmentId strin
 	}
 }
 
-func (client *ApiClient) DeleteSolution(ctx context.Context, environmentId string, solutionName string) error {
-	solution, err := client.GetSolution(ctx, environmentId, solutionName)
+func (client *DataverseClientImplementation) GetSolution(ctx context.Context, environmentId string, solutionName string) (*models.SolutionDto, error) {
+	solutions, err := client.GetSolutions(ctx, environmentId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	environmentUrl, token, err := client.getEnvironmentAuthDetails(ctx, environmentId)
-	if err != nil {
-		return err
+	for _, solution := range solutions {
+		if strings.EqualFold(solution.Name, solutionName) {
+			return &solution, nil
+		}
 	}
-	apiUrl := &url.URL{
-		Scheme: "https",
-		Host:   strings.TrimPrefix(*environmentUrl, "https://"),
-		Path:   fmt.Sprintf("/api/data/v9.2/solutions(%s)", solution.Id),
-	}
-	deleteSolutionRequest, err := http.NewRequestWithContext(ctx, "DELETE", apiUrl.String(), nil)
-	if err != nil {
-		return err
-	}
-	deleteSolutionRequest.Header.Set("Authorization", "Bearer "+*token)
-	apiResponse, err := client.doRequest(deleteSolutionRequest)
-	if err != nil {
-		return err
-	}
-	err = apiResponse.ValidateStatusCode(http.StatusAccepted)
-	if err != nil {
-		return err
-	}
-	return nil
+	return nil, fmt.Errorf("solution %s not found in %s", solutionName, environmentId)
 }
 
-func (client *ApiClient) createSolutionComponentParameters(ctx context.Context, settings []byte) ([]interface{}, error) {
+func (client *DataverseClientImplementation) createSolutionComponentParameters(ctx context.Context, settings []byte) ([]interface{}, error) {
 	if len(settings) == 0 {
 		return nil, nil
 	}
@@ -258,21 +290,7 @@ func (client *ApiClient) createSolutionComponentParameters(ctx context.Context, 
 	return solutionComponents, nil
 }
 
-func (client *ApiClient) getEnvironmentAuthDetails(ctx context.Context, environmentId string) (*string, *string, error) {
-	env, err := client.GetEnvironment(ctx, environmentId)
-	if err != nil {
-		return nil, nil, err
-	}
-	environmentUrl := strings.TrimSuffix(env.Properties.LinkedEnvironmentMetadata.InstanceURL, "/")
-
-	auth, err := client.DoAuthClientSecretForDataverse(ctx, environmentUrl)
-	if err != nil {
-		return nil, nil, err
-	}
-	return &environmentUrl, &auth.Token, nil
-}
-
-func (client *ApiClient) validateSolutionImportResult(ctx context.Context, token, environmentUrl, ImportJobKey string) error {
+func (client *DataverseClientImplementation) validateSolutionImportResult(ctx context.Context, environmentUrl, ImportJobKey string) error {
 	apiUrl := &url.URL{
 		Scheme: "https",
 		Host:   strings.TrimPrefix(environmentUrl, "https://"),
@@ -282,8 +300,7 @@ func (client *ApiClient) validateSolutionImportResult(ctx context.Context, token
 	if err != nil {
 		return err
 	}
-	validateSolutionImportRequest.Header.Set("Authorization", "Bearer "+token)
-	apiResponse, err := client.doRequest(validateSolutionImportRequest)
+	apiResponse, err := client.doRequest(ctx, environmentUrl, validateSolutionImportRequest)
 	if err != nil {
 		return err
 	}
@@ -296,6 +313,36 @@ func (client *ApiClient) validateSolutionImportResult(ctx context.Context, token
 	if validateSolutionImportResponseDto.SolutionOperationResult.Status != "Passed" {
 		//todo read error and warning messages
 		return fmt.Errorf("solution import failed: %s", validateSolutionImportResponseDto.SolutionOperationResult.Status)
+	}
+	return nil
+}
+
+func (client *DataverseClientImplementation) DeleteSolution(ctx context.Context, environmentId string, solutionName string) error {
+	solution, err := client.GetSolution(ctx, environmentId, solutionName)
+	if err != nil {
+		return err
+	}
+
+	environmentUrl, err := client.getEnvironmentUrlById(ctx, environmentId)
+	if err != nil {
+		return err
+	}
+	apiUrl := &url.URL{
+		Scheme: "https",
+		Host:   strings.TrimPrefix(environmentUrl, "https://"),
+		Path:   fmt.Sprintf("/api/data/v9.2/solutions(%s)", solution.Id),
+	}
+	deleteSolutionRequest, err := http.NewRequestWithContext(ctx, "DELETE", apiUrl.String(), nil)
+	if err != nil {
+		return err
+	}
+	apiResponse, err := client.doRequest(ctx, environmentUrl, deleteSolutionRequest)
+	if err != nil {
+		return err
+	}
+	err = apiResponse.ValidateStatusCode(http.StatusNoContent)
+	if err != nil {
+		return err
 	}
 	return nil
 }

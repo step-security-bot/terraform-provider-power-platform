@@ -39,12 +39,7 @@ deps:
 	go mod tidy
 
 mocks:
-	mockgen -destination=/workspaces/terraform-provider-power-platform/internal/mocks/client_mocks_bapi.go -package=powerplatform_mocks github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi ApiClientInterface
+	mockgen -destination=/workspaces/terraform-provider-power-platform/internal/powerplatform/mocks/bapiClientInterface_mocks.go -package=powerplatform_mocks github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api/bapi BapiClientInterface
+	mockgen -destination=/workspaces/terraform-provider-power-platform/internal/powerplatform/mocks/dataverseClientInterface_mocks.go -package=powerplatform_mocks github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api/dataverse DataverseClientInterface
+	mockgen -destination=/workspaces/terraform-provider-power-platform/internal/powerplatform/mocks/powerPlatformClientInterface_mocks.go -package=powerplatform_mocks github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/api/ppapi PowerPlatformClientInterface
   
-mocks2:
-	for pkg in $$(go list ./...); do \
-    	mockgen "$$pkg" -destination="mocks/$$(basename $$pkg).go" -package=mocks; \
-	done
-
-list: 
-	go list ./...
