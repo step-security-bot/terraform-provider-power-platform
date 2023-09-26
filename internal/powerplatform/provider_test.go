@@ -26,6 +26,18 @@ provider "powerplatform" {
 	password = "_"
 }
 `
+
+	ProviderConfigX = `
+provider "powerplatform" {
+}
+`
+	UnitTestsProviderConfig = `
+provider "powerplatform" {
+	tenant_id = "_"
+	username = "_"
+	password = "_"
+}
+`
 )
 
 func powerPlatformProviderServerApiMock(client powerplatform_bapi.ApiClientInterface) func() (tfprotov6.ProviderServer, error) {

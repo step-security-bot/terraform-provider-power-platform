@@ -1,4 +1,4 @@
-package powerplatform
+package clients
 
 import (
 	"context"

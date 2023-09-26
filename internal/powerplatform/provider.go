@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	powerplatform_bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi"
+	clients "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/clients"
 )
 
 var _ provider.Provider = &PowerPlatformProvider{}
@@ -21,6 +22,7 @@ var _ powerplatform_bapi.ApiClientInterface = &powerplatform_bapi.ApiClient{}
 
 type ProviderCredentialsModel struct {
 	TenantId types.String `tfsdk:"tenant_id"`
+
 	ClientId types.String `tfsdk:"client_id"`
 	Secret   types.String `tfsdk:"secret"`
 
@@ -66,18 +68,18 @@ func (model *ProviderCredentials) IsClientSecretCredentialsProvided() bool {
 }
 
 type BapiClient struct {
-	Auth   BapiAuthInterface
-	Client BapiClientInterface
+	Auth   clients.BapiAuthInterface
+	Client clients.BapiClientInterface
 }
 
 type DataverseClient struct {
-	Auth   DataverseAuthInterface
-	Client DataverseClientInterface
+	Auth   clients.DataverseAuthInterface
+	Client clients.DataverseClientInterface
 }
 
 type PowerPlatoformApiClient struct {
-	Auth   PowerPlatformAuthInterface
-	Client PowerPlatformClientInterface
+	Auth   clients.PowerPlatformAuthInterface
+	Client clients.PowerPlatformClientInterface
 }
 
 func NewPowerPlatformProvider() func() provider.Provider {
@@ -92,13 +94,13 @@ func NewPowerPlatformProvider() func() provider.Provider {
 				PowerPlatformUrl: "api.powerplatform.com",
 			},
 		}
-		bapiAuth := &BapiAuthImplementation{}
-		dataverseAuth := &DataverseAuthImplementation{}
-		powerplatformAuth := &PowerPlatformAuthImplementation{}
+		bapiAuth := &clients.BapiAuthImplementation{}
+		dataverseAuth := &clients.DataverseAuthImplementation{}
+		powerplatformAuth := &clients.PowerPlatformAuthImplementation{}
 
 		bapiClient := &BapiClient{
 			Auth: bapiAuth,
-			Client: &BapiClientImplementation{
+			Client: &clients.BapiClientImplementation{
 				Config: config,
 				Auth:   bapiAuth,
 			},
@@ -106,7 +108,7 @@ func NewPowerPlatformProvider() func() provider.Provider {
 
 		dataverseClient := &DataverseClient{
 			Auth: dataverseAuth,
-			Client: &DataverseClientImplementation{
+			Client: &clients.DataverseClientImplementation{
 				Config:     config,
 				Auth:       dataverseAuth,
 				BapiClient: bapiClient.Client,
@@ -115,7 +117,7 @@ func NewPowerPlatformProvider() func() provider.Provider {
 
 		powerplatformClient := &PowerPlatoformApiClient{
 			Auth: powerplatformAuth,
-			Client: &PowerPlatformClientImplementation{
+			Client: &clients.PowerPlatformClientImplementation{
 				Config: config,
 				Auth:   powerplatformAuth,
 			},
@@ -320,11 +322,11 @@ func (p *PowerPlatformProvider) Configure(ctx context.Context, req provider.Conf
 }
 
 func (p *PowerPlatformProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		func() resource.Resource { return NewEnvironmentResource() },
-		func() resource.Resource { return NewDataLossPreventionPolicyResource() },
-		func() resource.Resource { return NewSolutionResource() },
-	}
+	return append(resources,
+		//		func() resource.Resource { return NewEnvironmentResource() },
+		NewDataLossPreventionPolicyResource,
+		NewSolutionResource,
+	)
 }
 
 func (p *PowerPlatformProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
@@ -334,4 +336,17 @@ func (p *PowerPlatformProvider) DataSources(ctx context.Context) []func() dataso
 		func() datasource.DataSource { return NewEnvironmentsDataSource() },
 		func() datasource.DataSource { return NewSolutionsDataSource() },
 	}
+}
+
+var dataSources []func() datasource.DataSource
+var resources []func() resource.Resource
+
+func RegisterDataSource(dataSource func() datasource.DataSource) error {
+	dataSources = append(dataSources, dataSource)
+	return nil
+}
+
+func RegisterResource(resource func() resource.Resource) error {
+	resources = append(resources, resource)
+	return nil
 }
