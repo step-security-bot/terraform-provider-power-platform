@@ -1,54 +1,57 @@
 package powerplatform
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	powerplatform_bapi "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi"
+	connectors "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/services/connectors"
+	dlp_policy "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/services/dlp_policy"
+	environment "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/services/environment"
+	powerapps "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/services/powerapps"
+	solution "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/services/solution"
+	tenant_settings "github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/services/tenant_settings"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	// providerConfig is a shared configuration to combine with the actual
+	// AcceptanceTestsProviderConfig is a shared configuration to combine with the actual
 	// test configuration so the Power Platform client is properly configured.
 	// It is also possible to use the POWER_PLATFORM_ environment variables instead.
-	providerConfig = `
+	AcceptanceTestsProviderConfig = `
 provider "powerplatform" {
 }
 `
-	uniTestsProviderConfig = `
+	UnitTestsProviderConfig = `
 provider "powerplatform" {
 	tenant_id = "_"
 	username = "_"
 	password = "_"
+	client_id = "_"
+	secret = "_"
 }
 `
 )
 
-func powerPlatformProviderServerApiMock(client powerplatform_bapi.ApiClientInterface) func() (tfprotov6.ProviderServer, error) {
-	providerMock := providerserver.NewProtocol6WithError(&PowerPlatformProvider{
-		bapiClient: client,
-	})
-	return providerMock
-}
-
 var (
-	testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+	TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 		"powerplatform": providerserver.NewProtocol6WithError(NewPowerPlatformProvider()()),
 	}
 )
 
-func TestPowerPlatformProvider_HasChildDataSources(t *testing.T) {
+func TestUnitPowerPlatformProvider_HasChildDataSources(t *testing.T) {
 	expectedDataSources := []datasource.DataSource{
-		NewPowerAppsDataSource(),
-		NewEnvironmentsDataSource(),
-		NewConnectorsDataSource(),
-		NewSolutionsDataSource(),
+		powerapps.NewPowerAppsDataSource(),
+		environment.NewEnvironmentsDataSource(),
+		connectors.NewConnectorsDataSource(),
+		solution.NewSolutionsDataSource(),
+		dlp_policy.NewDataLossPreventionPolicyDataSource(),
+		tenant_settings.NewTenantSettingsDataSource(),
 	}
-	datasources := NewPowerPlatformProvider()().(*PowerPlatformProvider).DataSources(nil)
+	datasources := NewPowerPlatformProvider()().(*PowerPlatformProvider).DataSources(context.Background())
 
 	require.Equal(t, len(expectedDataSources), len(datasources), "There are an unexpected number of registered data sources")
 	for _, d := range datasources {
@@ -56,13 +59,14 @@ func TestPowerPlatformProvider_HasChildDataSources(t *testing.T) {
 	}
 }
 
-func TestPowerPlatformProvider_HasChildResources(t *testing.T) {
+func TestUnitPowerPlatformProvider_HasChildResources(t *testing.T) {
 	expectedResources := []resource.Resource{
-		NewEnvironmentResource(),
-		NewDataLossPreventionPolicyResource(),
-		NewSolutionResource(),
+		environment.NewEnvironmentResource(),
+		dlp_policy.NewDataLossPreventionPolicyResource(),
+		solution.NewSolutionResource(),
+		tenant_settings.NewTenantSettingsResource(),
 	}
-	resources := NewPowerPlatformProvider()().(*PowerPlatformProvider).Resources(nil)
+	resources := NewPowerPlatformProvider()().(*PowerPlatformProvider).Resources(context.Background())
 
 	require.Equal(t, len(expectedResources), len(resources), "There are an unexpected number of registered resources")
 	for _, r := range resources {

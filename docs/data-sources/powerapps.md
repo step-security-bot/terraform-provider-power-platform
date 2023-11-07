@@ -23,8 +23,8 @@ terraform {
 }
 
 provider "powerplatform" {
-  username  = var.username
-  password  = var.password
+  client_id = var.client_id
+  secret    = var.secret
   tenant_id = var.tenant_id
 }
 
@@ -40,12 +40,11 @@ data "powerplatform_powerapps" "all" {}
 - `powerapps` (Attributes List) List of Power Apps (see [below for nested schema](#nestedatt--powerapps))
 
 <a id="nestedatt--powerapps"></a>
-
 ### Nested Schema for `powerapps`
 
 Read-Only:
 
 - `created_time` (String) Created time
 - `display_name` (String) Display name
-- `environment_name` (String) Unique environment name (guid)
+- `id` (String) Unique environment id (guid)
 - `name` (String) Name

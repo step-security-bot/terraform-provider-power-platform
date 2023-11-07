@@ -13,6 +13,10 @@ servedocs:
 	tfplugindocs generate --provider-name powerplatform --rendered-provider-name "Power Platform"
 	mkdocs serve
 
+quickstarts: examples/quickstarts/**/*.tf examples/quickstarts/**/*.md.tmpl
+	(cd tools/quickstartgen && go mod tidy && go install)
+	quickstartgen
+
 unittest:
 	export TF_ACC=0
 	go install
@@ -33,7 +37,3 @@ test:
 
 deps:
 	go mod tidy
-
-mocks:
-	mockgen -destination=/workspaces/terraform-provider-power-platform/internal/mocks/client_mocks_bapi.go -package=powerplatform_mocks github.com/microsoft/terraform-provider-power-platform/internal/powerplatform/bapi ApiClientInterface
-  
