@@ -10,6 +10,19 @@ type ProviderClient struct {
 	BapiApi          *BapiClient
 	DataverseApi     *DataverseClient
 	PowerPlatformApi *PowerPlatformApiClient
+	AdminAnalytics   *AdminAnalyticsClient
+}
+
+type AdminAnalyticsClient struct {
+	Auth   *powerplatform.AdminAnalyticsAuth
+	Client *powerplatform.AdminAnalyticsClientApi
+}
+
+func NewAdminAnalyticsClient(auth *powerplatform.AdminAnalyticsAuth, client *powerplatform.AdminAnalyticsClientApi) *AdminAnalyticsClient {
+	return &AdminAnalyticsClient{
+		Auth:   auth,
+		Client: client,
+	}
 }
 
 type BapiClient struct {

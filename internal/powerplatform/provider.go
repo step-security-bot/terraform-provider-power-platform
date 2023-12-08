@@ -27,10 +27,11 @@ import (
 var _ provider.Provider = &PowerPlatformProvider{}
 
 type PowerPlatformProvider struct {
-	Config           *common.ProviderConfig
-	BapiApi          *clients.BapiClient
-	DataverseApi     *clients.DataverseClient
-	PowerPlatformApi *clients.PowerPlatformApiClient
+	Config            *common.ProviderConfig
+	BapiApi           *clients.BapiClient
+	DataverseApi      *clients.DataverseClient
+	PowerPlatformApi  *clients.PowerPlatformApiClient
+	AdminAnalyticsApi *clients.AdminAnalyticsClient
 }
 
 func NewPowerPlatformProvider() func() provider.Provider {
@@ -43,6 +44,8 @@ func NewPowerPlatformProvider() func() provider.Provider {
 				BapiUrl:          "api.bap.microsoft.com",
 				PowerAppsUrl:     "api.powerapps.com",
 				PowerPlatformUrl: "api.powerplatform.com",
+				//TODO: Add admin analytics url that depends on the region
+				AdminAnalyticsUrl: "emea.csanalytics.powerplatform.microsoft.com",
 			},
 		}
 
@@ -64,14 +67,21 @@ func NewPowerPlatformProvider() func() provider.Provider {
 		dataverseClientApi := api.NewDataverseClientApi(baseApiForDataverse, dataverseAuth)
 		dataverseClient := clients.NewDataverseClient(dataverseAuth, dataverseClientApi)
 
+		baseAuthAdminAnalytics := api.NewAuthBase(&config)
+		adminAnalyticsAuth := api.NewAnalyticsAuth(baseAuthAdminAnalytics)
+		baseApiForAa := api.NewApiClientBase(&config, baseAuthAdminAnalytics)
+		adminAnalyticsClientApi := api.NewAdminAnalyticsClientApi(baseApiForAa, adminAnalyticsAuth)
+		adminAnalyticsClient := clients.NewAdminAnalyticsClient(adminAnalyticsAuth, adminAnalyticsClientApi)
+
 		bapiClient.Client.SetDataverseClient(dataverseClient.Client)
 		dataverseClient.Client.SetBapiClient(bapiClient.Client)
 
 		p := &PowerPlatformProvider{
-			Config:           &config,
-			BapiApi:          bapiClient,
-			DataverseApi:     dataverseClient,
-			PowerPlatformApi: powerplatformClient,
+			Config:            &config,
+			BapiApi:           bapiClient,
+			DataverseApi:      dataverseClient,
+			PowerPlatformApi:  powerplatformClient,
+			AdminAnalyticsApi: adminAnalyticsClient,
 		}
 		return p
 	}
@@ -237,6 +247,7 @@ func (p *PowerPlatformProvider) Configure(ctx context.Context, req provider.Conf
 		BapiApi:          p.BapiApi,
 		DataverseApi:     p.DataverseApi,
 		PowerPlatformApi: p.PowerPlatformApi,
+		AdminAnalytics:   p.AdminAnalyticsApi,
 	}
 	resp.DataSourceData = &providerClient
 	resp.ResourceData = &providerClient

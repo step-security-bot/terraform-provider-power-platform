@@ -10,9 +10,10 @@ type ProviderConfig struct {
 }
 
 type ProviderConfigUrls struct {
-	BapiUrl          string
-	PowerAppsUrl     string
-	PowerPlatformUrl string
+	BapiUrl           string
+	PowerAppsUrl      string
+	PowerPlatformUrl  string
+	AdminAnalyticsUrl string
 }
 
 type ProviderCredentials struct {
